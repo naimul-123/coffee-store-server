@@ -35,32 +35,52 @@ async function run() {
 		app.get('/coffee', async (req, res) => {
 			const cursor = coffeeCollection.find();
 			const coffeeData = await cursor.toArray();
-			res.send(coffeeData)
+			res.send(coffeeData);
 			// console.log(coffeeData);
-		})
+		});
 		app.get('/coffee/:id', async (req, res) => {
 			const id = req.params.id;
-			const query = {_id: new ObjectId(id)}
-			
-			const coffee = await coffeeCollection.findOne(query);
-			res.send(coffee)
-			// console.log(coffeeData);
-		})
+			const query = { _id: new ObjectId(id) };
+			const result = await coffeeCollection.findOne(query);
+			res.send(result);
+		});
 
-
-		app.post('/coffee', async(req, res) => {
+		app.post('/coffee', async (req, res) => {
 			const newCoffee = await req.body;
 			const result = await coffeeCollection.insertOne(newCoffee);
 			res.send(result);
+		});
 
-		})
-		
-		app.delete('/coffee/:id', async(req, res) => {
-			const id = req.params.id
-			const query = { _id: new ObjectId(id) }
-			const result = await coffeeCollection.deleteOne(query)
-			res.send(result)
-		})
+		app.delete('/coffee/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) };
+			const result = await coffeeCollection.deleteOne(query);
+			res.send(result);
+		});
+		app.put('/coffee/:id', async (req, res) => {
+			const id = req.params.id;
+			const coffeeData = req.body;
+			const updatedCoffee = {
+				$set: {
+					coffeeName: coffeeData.coffeeName,
+					chef: coffeeData.chef,
+					supplier: coffeeData.supplier,
+					taste: coffeeData.taste,
+					catagory: coffeeData.catagory,
+					details: coffeeData.details,
+					photoURL: coffeeData.photoURL,
+				},
+			};
+
+			const filter = { _id: new ObjectId(id) };
+			const options = { upsert: true };
+			const result = await coffeeCollection.updateOne(
+				filter,
+				updatedCoffee,
+				options,
+			);
+			res.send(result);
+		});
 		// Send a ping to confirm a successful connection
 		await client.db('admin').command({ ping: 1 });
 		console.log(
