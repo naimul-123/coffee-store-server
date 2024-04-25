@@ -31,13 +31,27 @@ async function run() {
 		// Connect the client to the server	(optional starting in v4.7)
 		await client.connect();
 		const coffeeCollection = client.db('coffeeDB').collection('coffee');
-
+		const usersCollection = client.db('coffeeDB').collection('users')
 		app.get('/coffee', async (req, res) => {
 			const cursor = coffeeCollection.find();
 			const coffeeData = await cursor.toArray();
 			res.send(coffeeData);
 			// console.log(coffeeData);
 		});
+
+		app.get('/users', async (req, res) => {
+			const cursor = usersCollection.find();
+			const usersData = await cursor.toArray();
+			res.send(usersData)
+
+		})
+
+		app.get('/user/:id', async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: new ObjectId(id) }
+			const result = await usersCollection.findOne(query);
+			res.send(result)
+		})
 		app.get('/coffee/:id', async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
@@ -51,12 +65,41 @@ async function run() {
 			res.send(result);
 		});
 
+
+		app.post('/users', async (req, res) => {
+			const newUser = await req.body;
+			const result = await usersCollection.insertOne(newUser);
+			res.send(result)
+			// console.log(newUser)
+		})
+
+		app.patch('/user', async (req, res) => {
+			const user = req.body;
+			const query = { email: user.email }
+			const updatedUser = {
+				$set: {
+					lastLogedat: user.lastLogedat
+				}
+			}
+			const result = await usersCollection.updateOne(query, updatedUser)
+			res.send(result)
+			console.log(user)
+		})
+
 		app.delete('/coffee/:id', async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: new ObjectId(id) };
 			const result = await coffeeCollection.deleteOne(query);
 			res.send(result);
 		});
+
+		app.delete('/users/:id', async (req, res) => {
+			const id = req.params.id;
+			// console.log(id)
+			const query = { _id: new ObjectId(id) };
+			const result = await usersCollection.deleteOne(query)
+			res.send(result)
+		})
 		app.put('/coffee/:id', async (req, res) => {
 			const id = req.params.id;
 			const coffeeData = req.body;
@@ -89,7 +132,7 @@ async function run() {
 	} finally {
 		// Ensures that the client will close when you finish/error
 		// await client.close();0
-		//   zurD5GFUKXEVo4Re
+		//   
 	}
 }
 run().catch(console.dir);
